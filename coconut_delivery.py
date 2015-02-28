@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys
 import os.path
 
@@ -190,15 +192,18 @@ class CoconutDelivery:
         
         return True
                             
-
 if __name__ == '__main__':
+    # Default to some common file names or allow the file to be input on the
+    # command line
     if len(sys.argv) < 2:
-        print('Usage: %s <paths_file>')
+        if os.path.exists('flight_paths'):
+            delivery = CoconutDelivery('flight_paths')
+        elif os.path.exists('flight_paths.txt'):
+            delivery = CoconutDelivery('flight_paths.txt')
+        else:
+            print('Usage: %s <paths_file>')
+            sys.exit(1)
     else:
         delivery = CoconutDelivery(sys.argv[1])
-        delivery.findShortestPath()
 
-
-    
-    
-    
+    delivery.findShortestPath()
