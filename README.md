@@ -24,6 +24,7 @@ The current source contains an implementation using a simple BFS-like traversal 
 Another algorithm to solve this problem is A\*.
 
 The program can be executed as follows:
+
 	./coconut_delivery.py [paths file]
 
 If "paths file" is omitted, the program will try to load flight\_paths in the
