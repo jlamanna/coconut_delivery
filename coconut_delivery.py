@@ -96,52 +96,38 @@ class CoconutDelivery:
         while len(nodeStack) > 0:
             node = nodeStack.pop()
 
-            if node.getEnd() in self.adjacencyList:
-                # There are jet streams end at this node
-                for childNode in self.adjacencyList[node.getEnd()]:
-                    if (node.pathEnergy + childNode.getEnergy()) < childNode.pathEnergy:
-                        childNode.pathEnergy = node.pathEnergy + childNode.getEnergy()
+            i = node.getEnd()
+            nodeEnergy = node.pathEnergy
 
-                        if node.fake:
-                            childNode.predecessor = node.predecessor
-                        else:
-                            childNode.predecessor = node
-                        
-                        if childNode.getEnd() == self.lastMile:
-                            if childNode.pathEnergy < self.minEnergy:
-                                self.storePath(childNode)
-                                self.minEnergy = childNode.pathEnergy
-                        elif childNode.pathEnergy > self.minEnergy:
-                            # No need to continue, we are beyond the minimum so
-                            # far
-                            continue
-                        else:
-                            nodeStack.append(childNode)
-            else:
-                # Add a next node with a length of 1
-                # This could be optimized by storing a pointer to the next
-                # valid jet stream
-                fakeNode = JetStream(node.getEnd(), node.getEnd() + 1, self.defaultPathCost)
-                fakeNode.fake = True
-                fakeNode.pathEnergy = node.pathEnergy + self.defaultPathCost
+            # Increment the energy cost until we encounter another jetstream
+            while i not in self.adjacencyList and i < self.lastMile:
+                i += 1
+                nodeEnergy += self.defaultPathCost
 
-                # if the node we are looking at is 'fake', then use its
-                # predecessor, since that's a jet stream we need to track
-                if node.fake:
-                    fakeNode.predecessor = node.predecessor
-                else:
-                    fakeNode.predecessor = node
+            if i == self.lastMile:
+                # We've reached our goal!
+                self.storePath(node)
+                self.minEnergy = nodeEnergy;
+                return
 
-                if fakeNode.getEnd() == self.lastMile:
-                    if fakeNode.pathEnergy < self.minEnergy:
-                        self.storePath(fakeNode.predecessor)
-                        self.minEnergy = fakeNode.pathEnergy
-                elif fakeNode.pathEnergy > self.minEnergy:
-                    # No need to continue, we are beyond the minimum so
-                    # far
-                    continue
-                else:
-                    nodeStack.append(fakeNode)
+            # There are jet streams end at this node
+            for childNode in self.adjacencyList[i]:
+                newLength = nodeEnergy + childNode.getEnergy()
+
+                if newLength < childNode.pathEnergy:
+                    childNode.pathEnergy = newLength
+                    childNode.predecessor = node
+
+                    if childNode.getEnd() == self.lastMile:
+                        if childNode.pathEnergy < self.minEnergy:
+                            self.storePath(childNode)
+                            self.minEnergy = childNode.pathEnergy
+                    elif childNode.pathEnergy > self.minEnergy:
+                        # No need to continue, we are beyond the minimum so
+                        # far
+                        continue
+                    else:
+                        nodeStack.append(childNode)
         
     def storePath(self, lastNode):
         self.minPath = []
