@@ -170,7 +170,7 @@ class CoconutDelivery:
                             self.defaultPathCost = int(data[0])
                         else:
                             raise Exception('The first line of the paths file is malformed')
-                    else:
+                    elif len(data) >= 3:
                         # Subsequent lines should have 3 integers, the start
                         # mile, end mile, and energy to traverse that distance
                         start = int(data[0])
