@@ -157,7 +157,7 @@ class CoconutDelivery:
         minStart = sys.maxsize
         try:
             if not os.path.exists(self.pathsFile):
-                raise Exception('The paths file does not exist')
+                raise Exception('The paths file (%s) does not exist' % self.pathsFile)
 
             with open(self.pathsFile) as fileObj:
                 lineNum = 0
@@ -221,9 +221,10 @@ if __name__ == '__main__':
         elif os.path.exists('flight_paths.txt'):
             delivery = CoconutDelivery('flight_paths.txt')
         else:
-            print('Usage: %s <paths_file>')
+            print('Usage: %s <paths_file>' % sys.argv[0])
             sys.exit(1)
     else:
         delivery = CoconutDelivery(sys.argv[1])
 
-    delivery.findShortestPath()
+    if not delivery.findShortestPath():
+        sys.exit(2)
