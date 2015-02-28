@@ -12,7 +12,6 @@ class JetStream:
 
         self.predecessor = None
         self.pathEnergy = sys.maxsize
-        self.fake = False
 
     def getStart(self): return self.__start
     def getEnd(self): return  self.__end
