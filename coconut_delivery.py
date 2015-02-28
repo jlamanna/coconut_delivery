@@ -28,10 +28,12 @@ class CoconutDelivery:
     shortest path problem on a directed, acyclic graph.
     This problem can be solved in several different ways.
     Here is an implementation using a simple BFS-like traversal
+    and also using Dijkstra
     """
 
     def __init__(self, pathsFile):
         self.pathsFile = pathsFile
+        self.jetStreamList = []
         self.adjacencyList = { }
         self.defaultPathCost = 0
         self.lastMile = 0
@@ -43,13 +45,48 @@ class CoconutDelivery:
         if not self._readPathsFile():
             return False
 
-        self._bfsMethod()
+        #self._bfsMethod()
+        self._dijkstra()
 
         # Print the results
         print(self.minEnergy)
         print(self.minPath)
 
         return True
+
+    def _dijkstra(self):
+        # Choose a source
+        source = self.firstJetStreams[0]
+
+        # Create our priority queue of pathLength
+        self.jetStreamList.sort(key=lambda x: x.pathEnergy, reverse=True)
+
+        while len(self.jetStreamList) > 0:
+            node = self.jetStreamList.pop()
+            i = node.getEnd()
+            nodeEnergy = node.pathEnergy
+
+            # Increment the energy cost until we encounter another jetstream
+            while i not in self.adjacencyList and i < self.lastMile:
+                i += 1
+                nodeEnergy += self.defaultPathCost
+
+            if i == self.lastMile:
+                # We've reached our goal!
+                self.storePath(node)
+                self.minEnergy = node.pathEnergy;
+                return
+                
+            for childNode in self.adjacencyList[i]:
+                newLength = nodeEnergy + childNode.getEnergy()
+
+                if newLength < childNode.pathEnergy:
+                    childNode.pathEnergy = newLength
+                    childNode.predecessor = node
+
+            # Keep our priority queue sorted
+            self.jetStreamList.sort(key=lambda x: x.pathEnergy, reverse=True)
+        
 
     def _bfsMethod(self):
         # initialize our energy and the node state for a BFS
@@ -146,6 +183,8 @@ class CoconutDelivery:
 
                         # Store the last mile marker
                         self.lastMile = max(self.lastMile, end)
+
+                        self.jetStreamList.append(jetStream)
 
                         # Store the first jet streams we have
                         if start < minStart:
