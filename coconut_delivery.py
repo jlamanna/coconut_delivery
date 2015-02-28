@@ -74,7 +74,7 @@ class CoconutDelivery:
             if i == self.lastMile:
                 # We've reached our goal!
                 self.storePath(node)
-                self.minEnergy = node.pathEnergy;
+                self.minEnergy = nodeEnergy;
                 return
                 
             for childNode in self.adjacencyList[i]:
