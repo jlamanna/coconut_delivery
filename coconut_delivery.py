@@ -44,6 +44,8 @@ class CoconutDelivery:
         self.firstJetStreams = []
 
     def findShortestPath(self):
+        """ Find the shortest path using the jet stream file given"""
+
         if not self._readPathsFile():
             return False
 
@@ -57,6 +59,9 @@ class CoconutDelivery:
         return True
 
     def _dijkstra(self):
+        """Implementation of Dijkstra's algorithm using a sorted list of nodes
+        to compute a shortest path between a pair of nodes"""
+
         # Choose a source
         source = self.firstJetStreams[0]
 
@@ -73,15 +78,17 @@ class CoconutDelivery:
                 i += 1
                 nodeEnergy += self.defaultPathCost
 
+            # Check and see if we've reached the goal
             if i == self.lastMile:
-                # We've reached our goal!
-                self.storePath(node)
+                self._storePath(node)
                 self.minEnergy = nodeEnergy;
                 return
                 
             for childNode in self.adjacencyList[i]:
                 newLength = nodeEnergy + childNode.getEnergy()
 
+                # If the computed path energy is smaller, store it and store
+                # the new predecessor
                 if newLength < childNode.pathEnergy:
                     childNode.pathEnergy = newLength
                     childNode.predecessor = node
@@ -89,8 +96,10 @@ class CoconutDelivery:
             # Keep our priority queue sorted
             self.jetStreamList.sort(key=lambda x: x.pathEnergy, reverse=True)
         
-
     def _bfsMethod(self):
+        """Implement a shortest path between a pair of nodes using BFS
+        concepts"""
+
         # initialize our energy and the node state for a BFS
         # however we want to visit every edge, so don't mark anything as visited
         nodeStack = list(self.firstJetStreams)
@@ -108,36 +117,44 @@ class CoconutDelivery:
 
             if i == self.lastMile:
                 # We've reached our goal!
-                self.storePath(node)
+                self._storePath(node)
                 self.minEnergy = nodeEnergy;
                 return
 
-            # There are jet streams end at this node
+            # Do a breadth-first search
             for childNode in self.adjacencyList[i]:
                 newLength = nodeEnergy + childNode.getEnergy()
 
+                # If the computed path energy is smaller, store it and store
+                # the new predecessor
                 if newLength < childNode.pathEnergy:
                     childNode.pathEnergy = newLength
                     childNode.predecessor = node
 
+                    # Check for the end condition
                     if childNode.getEnd() == self.lastMile:
                         if childNode.pathEnergy < self.minEnergy:
-                            self.storePath(childNode)
+                            self._storePath(childNode)
                             self.minEnergy = childNode.pathEnergy
                     elif childNode.pathEnergy > self.minEnergy:
                         # No need to continue, we are beyond the minimum so
                         # far
                         continue
                     else:
+                        # Enqueue the next node to visit
                         nodeStack.append(childNode)
         
-    def storePath(self, lastNode):
+    def _storePath(self, lastNode):
+        # Follow the predecessor chain (from the end) and store in
+        # self.minPath
         self.minPath = []
         while lastNode:
             self.minPath.insert(0, (lastNode.getStart(), lastNode.getEnd()))
             lastNode = lastNode.predecessor
 
     def _readPathsFile(self):
+        """Read and parse the given paths file"""
+
         minStart = sys.maxsize
         try:
             if not os.path.exists(self.pathsFile):
@@ -149,22 +166,25 @@ class CoconutDelivery:
                     data = line.split(' ')
 
                     if lineNum == 0:
-                        # This should be a single entry
+                        # The first line should be a default path cost integer
                         if len(data) > 0:
                             self.defaultPathCost = int(data[0])
                         else:
                             raise Exception('The first line of the paths file is malformed')
                     else:
-                        # Subsequent lines should have 3 integers
+                        # Subsequent lines should have 3 integers, the start
+                        # mile, end mile, and energy to traverse that distance
                         start = int(data[0])
                         end = int(data[1])
                         energy = int(data[2])
 
                         jetStream = JetStream(start, end, energy)
+
                         # default the path energy to the maximum it could be
                         jetStream.pathEnergy = start * self.defaultPathCost + energy
 
-                        # Add the edge to the adjacencyList with its energy
+                        # Add the JetStream to an adjacency list
+                        # representation by start mile
                         if start not in self.adjacencyList:
                             self.adjacencyList[start] = [ ]
                         self.adjacencyList[start].append(jetStream)
@@ -172,9 +192,12 @@ class CoconutDelivery:
                         # Store the last mile marker
                         self.lastMile = max(self.lastMile, end)
 
+                        # Add it to a full list of jetStreams (needed for
+                        # Dijkstra's algorithm
                         self.jetStreamList.append(jetStream)
 
-                        # Store the first jet streams we have
+                        # Store the first jet streams we have to have a proper
+                        # starting point
                         if start < minStart:
                             self.firstJetStreams = []
                             self.firstJetStreams.append(jetStream)
@@ -183,8 +206,6 @@ class CoconutDelivery:
                             self.firstJetStreams.append(jetStream)
 
                     lineNum += 1
-
-            #print('Flight Paths Loaded')
         except Exception as e:
             print('Error reading paths file')
             print(e)
